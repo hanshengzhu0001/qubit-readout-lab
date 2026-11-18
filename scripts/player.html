@@ -12,9 +12,10 @@ svg{width:100%;display:block;overflow:visible}button,select{font:inherit;padding
 .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:24px 0}
 input{width:min(230px,100%)}output{display:block;margin:16px 0;font-variant-numeric:tabular-nums}
 @media(max-width:620px){section{grid-template-columns:1fr}}
+ .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:20px 0}.stage{padding:10px 12px;border:1px solid #435574;border-radius:10px;color:#a3b5cf}.stage.active{border-color:#77e8c4;color:#fff;background:#203a43;box-shadow:0 0 16px #77e8c428}.stage strong{display:block;color:inherit}.stage small{display:block;margin-top:4px}
 </style>
 <main>
-<h1>When is a qubit readout ready?</h1>
+<h1>From qubits to feedback</h1>
 <p>Replay synthetic voltage samples and follow the evidence that triggers feedback.</p>
 <div class="controls">
 <label>Condition <select id="mode"><option value="nominal">Nominal</option><option value="stale">Stale calibration</option><option value="corrected" selected>Pilot corrected</option></select></label>
@@ -23,6 +24,7 @@ input{width:min(230px,100%)}output{display:block;margin:16px 0;font-variant-nume
 <button id="play">Play</button>
 <label>Sample <input id="step" type="range" min="0" value="0"></label>
 </div>
+<div id="flow" class="flow" aria-label="Circuit stages"></div>
 <section>
 <article><h2>Measured voltage path</h2><svg id="iq" viewBox="0 0 360 245" role="img" aria-label="In-phase versus quadrature voltage"></svg><p>Blue and orange are state 0 and 1 templates. White shows measured samples after any selected phase correction.</p></article>
 <article><h2>Accumulated log odds</h2><svg id="odds" viewBox="0 0 360 245" role="img" aria-label="Cumulative state evidence by sample"></svg><p>Positive evidence favors state 1. Dashed lines mark the early decision thresholds.</p></article>
@@ -42,7 +44,8 @@ function run(){return data.runs.find(r=>r.mode===mode.value && (r.threshold===nu
 run().previews.forEach((_,i)=>shot.add(new Option(i+1,i)));
 function stop(){clearInterval(timer);timer=null;play.textContent='Play';}
 function draw(){
-  const r=run(), p=r.previews[Number(shot.value)], n=Number(step.value);
+  const r=run(), p=r.previews[Number(shot.value)], cursor=Number(step.value), n=Math.min(cursor,p.evidence.length);
+  const decided=cursor>=p.evidence.length, acted=cursor>=p.evidence.length+4, verified=cursor>=p.evidence.length+7;
   const a=r.phase_deg*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
   const voltage=p.samples.map(([i,q])=>[c*i+s*q,c*q-s*i]);
   const extent=Math.max(1,...voltage.flat().map(Math.abs))*1.08;
@@ -57,12 +60,21 @@ function draw(){
     label(33,225,'0')+label(273,225,'48 samples')+
     (r.threshold===null?'':[-5,5].map(v=>'<path d="M35 '+y(v)+' H330" fill="none" stroke="#ffad65" stroke-dasharray="5 5"/>'+label(10,y(v)+4,v)).join(''))+
     line([[x(0),y(0)],...p.evidence.slice(0,n).map((v,i)=>[x(i+1),y(v)])],'#77e8c4');
-  status.textContent=n===p.evidence.length
+  status.textContent=verified ? 'Verified '+(p.target_one_after?'target |1⟩':'target |0⟩')+' · '+(p.on_time?'within deadline':'after deadline') : decided
     ? 'Decision '+Number(p.decision)+' · true state '+Number(p.truth)+' · feedback at '+(4*n+16)+' ns (simulated)'
     : 'Sample '+n+' of '+p.evidence.length+' · collecting evidence';
-  summary.textContent=r.shots.toLocaleString()+' shots · '+r.mean_samples.toFixed(2)+' mean samples · '+r.errors+' assignment errors';
+  const stages=[
+    ['Prepare', 'H + CNOT → Bell pair'],
+    ['Measure', n===0?'First qubit branches':'I/Q samples arrive'],
+    ['Decide', decided?'Controller calls '+Number(p.decision):'Accumulating evidence'],
+    ['Act', acted?(p.decision?'Apply X to target':'Leave target unchanged'):'Waiting for decision'],
+    ['Verify', verified?'Target '+Number(p.target_one_before)+' → '+Number(p.target_one_after)+' · '+p.finished_ns+' ns':'Goal: target |0⟩ by 120 ns']
+  ];
+  document.getElementById('flow').innerHTML=stages.map(([title,detail],i)=>
+    '<div class="stage '+([true,n>0,decided,acted,verified][i]?'active':'')+'"><strong>'+title+'</strong><small>'+detail+'</small></div>').join('');
+  summary.textContent=r.timely_resets.toLocaleString()+' correct resets by 120 ns · '+r.shots.toLocaleString()+' shots · '+r.mean_samples.toFixed(2)+' mean samples · '+r.errors+' assignment errors';
 }
-function reset(){stop();step.max=run().previews[Number(shot.value)].evidence.length;step.value=0;draw();}
+function reset(){stop();step.max=run().previews[Number(shot.value)].evidence.length+7;step.value=0;draw();}
 [mode,rule,shot].forEach(el=>el.addEventListener('change',reset));
 step.addEventListener('input',()=>{stop();draw();});
 play.addEventListener('click',()=>{

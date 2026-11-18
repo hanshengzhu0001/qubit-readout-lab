@@ -14,6 +14,22 @@ A controller needs to read a qubit before it can act on the result. Waiting for 
 
 [Replay the experiment](#replay-the-experiment) · [How Rust async works here](#rust-async-two-runtimes-two-jobs) · [Reproduce the results](#reproduce-locally)
 
+## From a quantum circuit to a classical decision and back
+
+The simulator prepares a Bell pair from `|00⟩` with H and CNOT. Measuring the first qubit takes one of the two equally probable branches. The experiment explicitly supplies balanced branches so every calibration policy sees the same synthetic shots. A readout actor receives only the voltage-derived evidence. It sends its decision back to the circuit actor, which applies X to the second qubit if the controller reports 1, then checks its final state.
+
+```mermaid
+flowchart LR
+  A[Prepare Bell pair] --> B[Measure first qubit]
+  B --> C[Readout actor accumulates I/Q evidence]
+  C -->|async decision message| D[Circuit actor applies conditional X]
+  D --> E[Verify target state and completion time]
+```
+
+With an illustrative **120 ns deadline**, early readout reset the target correctly and on time in **2,566 / 4,000** drifted shots. Pilot correction raised that to **3,427 / 4,000**. The 48-sample policy finishes at 220 ns under the same timing model. The deadline scores the outcome and the circuit still finishes late shots.
+
+This is a Bell-pair feedback experiment with an explicit two-qubit state vector and synthetic analog readout. H, CNOT, projective measurement, and conditional X are modeled directly. Shots run serially inside each bench. Tokio runs separate benches concurrently.
+
 ## A small inverse problem before each readout experiment
 
 The idea comes from two prior projects. Single-image scene reconstruction uses an observation to infer hidden structure. Inverse-PDE work uses known dynamics to constrain what can explain partial observations. Here the hidden quantity is a shared phase offset, and the forward model is a driven resonator. With eight labeled calibration shots per state, we fit one rotation by minimizing squared error between the predicted and measured I/Q trajectories. We then freeze it and evaluate on 4,000 separate shots.
@@ -45,7 +61,7 @@ The chart changes the stopping threshold on the same shots. [Watch the evidence 
 - **Ownership and borrowing.** An immutable `Arc<Input>` shares the fixture among runs. Each bench borrows its shots and owns its actor state. The sample event moves its payload into the next scheduled event.
 - **Tokio.** `JoinSet::spawn_blocking` runs independent synchronous benches while the async coordinator waits on an owned semaphore permit. At most two benches run concurrently.
 - **NeXosim.** Its executor advances logical time one sample event at a time. The actor updates its log odds and schedules feedback once it hits the threshold or uses all 48 samples. Its output port sends the decision with `.await`. The illustrative timing uses a 4 ns sample period and 16 ns feedback delay.
-- **Verification.** Rust fits the phase and checks each of 24,000 simulated decisions and feedback timestamps against a direct calculation. Python generates the fixture and compares aggregate accuracy and sample counts with its vectorized reference.
+- **Verification.** Rust fits the phase and checks each of 24,000 simulated decisions, final target states, feedback timestamps and deadlines against a direct calculation. Python generates the fixture and compares aggregate accuracy and sample counts with its vectorized reference.
 
 The data are synthetic and assume a fixed state within each shot, independent Gaussian noise, and a phase offset shared across pilot and test shots. The timing model processes one shot at a time.
 

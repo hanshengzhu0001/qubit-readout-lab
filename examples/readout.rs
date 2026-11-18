@@ -104,6 +104,84 @@ impl Reader {
     }
 }
 
+const GATE_NS: u64 = 12;
+const DEADLINE_NS: u64 = 120;
+
+// Real amplitudes suffice for this particular H, CNOT, measurement, and X circuit.
+#[derive(Serialize, Deserialize)]
+struct Circuit {
+    readout: Output<Vec<f64>>,
+    result: Output<CircuitResult>,
+    amplitudes: [f64; 4],
+    started_ns: u64,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct CircuitResult {
+    decision: Decision,
+    target_one_before: bool,
+    target_one_after: bool,
+    finished_ns: u64,
+    on_time: bool,
+}
+
+#[Model]
+impl Circuit {
+    async fn prepare(&mut self, (branch, scores): (bool, Vec<f64>), cx: &Context<Self>) {
+        self.started_ns = logical_ns(cx.time());
+        self.amplitudes = [1., 0., 0., 0.];
+        // H on the first qubit, followed by CNOT from the first to the second.
+        for low_bit in 0..2 {
+            let a = self.amplitudes[low_bit];
+            let b = self.amplitudes[low_bit + 2];
+            self.amplitudes[low_bit] = (a + b) * std::f64::consts::FRAC_1_SQRT_2;
+            self.amplitudes[low_bit + 2] = (a - b) * std::f64::consts::FRAC_1_SQRT_2;
+        }
+        self.amplitudes.swap(2, 3);
+        // Condition on the fixture's explicit, balanced measurement branch.
+        // The matching analog shot is exposed to the reader without its label.
+        let offset = 2 * usize::from(branch);
+        let norm = self.amplitudes[offset].hypot(self.amplitudes[offset + 1]);
+        for (index, amplitude) in self.amplitudes.iter_mut().enumerate() {
+            *amplitude = if index / 2 == offset / 2 {
+                *amplitude / norm
+            } else {
+                0.
+            };
+        }
+        self.readout.send(scores).await;
+    }
+
+    fn feedback(&mut self, decision: Decision, cx: &Context<Self>) {
+        cx.schedule_event(
+            Duration::from_nanos(GATE_NS),
+            schedulable!(Self::verify),
+            decision,
+        )
+        .expect("positive gate duration");
+    }
+
+    #[nexosim(schedulable)]
+    async fn verify(&mut self, decision: Decision, cx: &Context<Self>) {
+        let target_one = |a: &[f64; 4]| a[1].powi(2) + a[3].powi(2) > 0.5;
+        let target_one_before = target_one(&self.amplitudes);
+        if decision.state {
+            self.amplitudes.swap(0, 1);
+            self.amplitudes.swap(2, 3);
+        }
+        let finished_ns = logical_ns(cx.time()) - self.started_ns;
+        self.result
+            .send(CircuitResult {
+                decision,
+                target_one_before,
+                target_one_after: target_one(&self.amplitudes),
+                finished_ns,
+                on_time: finished_ns <= DEADLINE_NS,
+            })
+            .await;
+    }
+}
+
 fn fit_phase(input: &Input) -> f64 {
     let (mut dot, mut cross) = (0., 0.);
     for shot in &input.pilots {
@@ -124,6 +202,10 @@ struct Preview<'a> {
     truth: bool,
     decision: bool,
     evidence: Vec<f64>,
+    target_one_before: bool,
+    target_one_after: bool,
+    finished_ns: u64,
+    on_time: bool,
 }
 
 fn evaluate(input: &Input, mode: &str, threshold: f64) -> Result<serde_json::Value> {
@@ -144,18 +226,28 @@ fn evaluate(input: &Input, mode: &str, threshold: f64) -> Result<serde_json::Val
         threshold,
         evidence: Vec::new(),
     };
-    actor.output.connect_sink(writer);
+    let mut circuit = Circuit {
+        readout: Output::default(),
+        result: Output::default(),
+        amplitudes: [1., 0., 0., 0.],
+        started_ns: 0,
+    };
+    circuit.result.connect_sink(writer);
     let mailbox = Mailbox::new();
+    let circuit_box = Mailbox::new();
+    circuit.readout.connect(Reader::begin, &mailbox);
+    actor.output.connect(Circuit::feedback, &circuit_box);
     let mut bench = SimInit::with_num_threads(1);
     let source = EventSource::new()
-        .connect(Reader::begin, &mailbox)
+        .connect(Circuit::prepare, &circuit_box)
         .register(&mut bench);
     let mut sim = bench
         .add_model(actor, mailbox, "readout")
+        .add_model(circuit, circuit_box, "circuit")
         .init(MonotonicTime::EPOCH)
         .map_err(|e| anyhow!("{e}"))?;
     let mut previews = Vec::new();
-    let (mut errors, mut samples) = (0, 0);
+    let (mut errors, mut samples, mut timely_resets) = (0, 0, 0);
     let mut preview_counts = [0; 2];
     for shot in shots {
         let scores: Vec<_> = shot
@@ -178,12 +270,21 @@ fn evaluate(input: &Input, mode: &str, threshold: f64) -> Result<serde_json::Val
             })
             .map_or(WINDOW, |i| i + 1);
         let start = logical_ns(sim.time());
-        sim.process_event(&source, scores)
+        sim.process_event(&source, (shot.state, scores))
             .map_err(|e| anyhow!("{e}"))?;
         sim.run().map_err(|e| anyhow!("{e}"))?;
-        let decision = reader
+        let result = reader
             .try_read()
             .ok_or_else(|| anyhow!("missing feedback"))?;
+        let decision = result.decision;
+        ensure!(
+            result.target_one_before == shot.state
+                && result.target_one_after == (shot.state ^ decision.state)
+                && result.finished_ns == expected as u64 * TICK_NS + FEEDBACK_NS + GATE_NS
+                && result.on_time == (result.finished_ns <= DEADLINE_NS),
+            "circuit or timing mismatch"
+        );
+        timely_resets += usize::from(result.on_time && !result.target_one_after);
         ensure!(
             decision.samples == expected
                 && decision.state == (odds > 0.)
@@ -201,12 +302,16 @@ fn evaluate(input: &Input, mode: &str, threshold: f64) -> Result<serde_json::Val
                 truth: shot.state,
                 decision: decision.state,
                 evidence: decision.evidence,
+                target_one_before: result.target_one_before,
+                target_one_after: result.target_one_after,
+                finished_ns: result.finished_ns,
+                on_time: result.on_time,
             });
         }
     }
     Ok(
         serde_json::json!({"mode":mode,"threshold":threshold,"phase_deg":angle.to_degrees(),
-        "errors":errors,"shots":shots.len(),"mean_samples":samples as f64/shots.len() as f64,
+        "errors":errors,"timely_resets":timely_resets,"shots":shots.len(),"mean_samples":samples as f64/shots.len() as f64,
         "previews":previews}),
     )
 }

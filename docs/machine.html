@@ -1,0 +1,33 @@
+<!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Inside the feedback loop</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#080d17;color:#eff9ff;font:16px system-ui}main{max-width:1120px;margin:auto;padding:24px}header,aside,.tools{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}a,small{color:#91efdc}h1{font-size:clamp(36px,6vw,76px);letter-spacing:-.065em;margin:18px 0 4px}p{color:#bdcede}canvas{width:100%;display:block;background:radial-gradient(ellipse at 50% 55%,#1d2c40,#080d17 75%);border-radius:16px}button,select{color:white;background:#213448;border:1px solid #547086;border-radius:8px;padding:9px;font:inherit}input{flex:1;min-width:120px}strong{font-size:21px}aside{padding:16px 0}button{cursor:pointer}small{font-family:monospace}article{min-height:90px} @media(max-width:620px){main{padding:12px}canvas{min-height:270px;object-fit:contain}}</style>
+<main><header><small>SIGNAL / STATE</small><a href="index.html#experiment">Inspect the voltage traces ↗</a></header><h1>Inside the feedback loop.</h1><p>Follow one measurement through a superconducting quantum computer. Switch calibration to see the same shot change the final qubit state.</p>
+<canvas id="view" width="1000" height="460" aria-label="Cutaway illustration of a microwave controller, cryostat, qubit chip and readout electronics"></canvas>
+<aside><strong id="title"></strong><small id="time"></small></aside><article id="detail"></article><div class="tools"><button id="play">Pause</button><input aria-label="Replay progress" id="slider" type="range" min="0" max="1000" value="0"><select aria-label="Calibration" id="mode"><option value="corrected">Pilot corrected</option><option value="stale">Stale calibration</option></select></div><p><small>Conceptual hardware cutaway · synthetic shot · preparation shown schematically · playback slowed for inspection</small></p></main>
+<script src="machine-shot.js"></script><script>
+const el=id=>document.getElementById(id),ctx=el('view').getContext('2d'),mint='#81ffdb',gold='#ffca76',blue='#80baff';
+let progress=0,playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,last=0;
+function line(points,color,width=2){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
+function ellipse(x,y,rx,ry,c){ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,7);ctx.fill()}
+function text(x,y,s,c='#dcecff',size=15){ctx.fillStyle=c;ctx.font=size+'px system-ui';ctx.fillText(s,x,y)}
+function packet(path,f,color){line(path,color,2);const pos=Math.min(.99999,f)*(path.length-1),i=Math.floor(pos),t=pos-i;const x=path[i][0]*(1-t)+path[i+1][0]*t,y=path[i][1]*(1-t)+path[i+1][1]*t;ctx.shadowBlur=22;ctx.shadowColor=color;ellipse(x,y,7,7,color);ctx.shadowBlur=0}
+function draw(){const p=machineShot[el('mode').value],N=p.evidence.length,finish=p.finished_ns;
+const ns=Math.max(0,Math.min(finish,(progress-.28)/.72*finish)),stage=progress<.10?0:progress<.20?1:progress<.28?2:ns<4*N?3:ns<4*N+16?4:progress<.99999?5:6;
+ctx.clearRect(0,0,1000,460);
+for(let y=30;y<455;y+=24)for(let x=12;x<995;x+=24)ellipse(x,y,1,1,'#233245');
+text(24,36,'01   MICROWAVE CONTROL',blue);text(385,36,'02   CRYOSTAT',gold);text(730,36,'03   READOUT + LOGIC',mint);
+for(let rack of [34,736]){ctx.fillStyle='#1a2838';ctx.fillRect(rack,120,220,160);for(let j=0;j<3;j++){ctx.fillStyle='#26384a';ctx.fillRect(rack+9,131+j*46,202,37);for(let k=0;k<5;k++)ellipse(rack+24+k*12,151+j*46,3,3,k%2?mint:blue);line([[rack+104,151+j*46],[rack+189,151+j*46]],'#718293')}}
+for(let j=0;j<5;j++){const y=65+j*57,rx=94-j*8;for(let k=-2;k<=2;k++)line([[493+k*27,y],[493+k*24,y+57]],'#af824f',3);ellipse(493,y+6,rx,15,'#946333');ellipse(493,y,rx,16,'#e3b878');ellipse(493,y-2,rx*.76,9,'#ad8555')}
+ctx.fillStyle='#344259';ctx.fillRect(443,342,100,45);for(let k=0;k<8;k++){line([[447+k*13,338],[447+k*13,346]],gold);line([[447+k*13,385],[447+k*13,393]],gold)}
+line([[472,365],[515,365]],'#c9d7ff',3);ellipse(472,365,9,9,blue);ellipse(515,365,9,9,stage===6&&p.target_one_after?'#ff898d':mint);
+text(395,427,'BELL PAIR  /  TWO-QUBIT CHIP');text(36,306,'Pulse generator');text(740,306,'Digitizer and controller');
+const drive=[[250,169],[318,169],[352,100],[408,100],[429,305],[472,363]],read=[[472,363],[563,311],[595,102],[653,102],[691,171],[738,171]],feedback=[[738,236],[661,236],[619,316],[558,316],[515,363]];
+line(drive,'#39516c');line(read,'#37574f');line(feedback,'#61523e');
+if(stage===0)packet(drive,progress/.1,blue);if(stage===1){ctx.shadowColor=mint;ctx.shadowBlur=18;line([[472,365],[515,365]],mint,5);ctx.shadowBlur=0}
+if(stage===2||stage===3)packet(read,stage===2?(progress-.2)/.08:(ns/20)%1,mint);if(stage===4||stage===5)packet(feedback,Math.min(1,(ns-4*N)/28),gold);
+const count=Math.min(N,Math.floor(ns/4));if(count>0){const pts=p.evidence.slice(0,count).map((v,i)=>[747+i*196/48,220-Math.max(-9,Math.min(9,v))*3]);line(pts,mint,3)}
+const names=['Send the control pulse','Entangle the pair','Measure the first qubit','Listen to the resonator','Transmit the decision','Apply conditional feedback','Verify the target'];
+const notes=['Microwave control is illustrated schematically. The circuit begins in |00⟩.','Hadamard and controlled-X prepare (|00⟩ + |11⟩)/√2.','The fixture selects measurement branch '+Number(p.truth)+'. The partner qubit is correlated with it.','Sample '+count+' of '+N+'. The readout actor accumulates evidence from two noisy voltage channels.','The reader calls state '+Number(p.decision)+'. Its output travels through a modeled 16 ns feedback delay.',p.decision?'The controller requests X on the partner qubit. The gate slot takes 12 ns.':'The controller leaves the partner unchanged. The reserved gate slot takes 12 ns.','Final target |'+Number(p.target_one_after)+'⟩. '+(p.target_one_after?'Reset failed.':'Reset succeeded.')+' Completion '+finish+' ns against a 120 ns deadline.'];
+el('title').textContent=names[stage];el('detail').textContent=notes[stage];el('time').textContent=stage<3?'PREPARATION':Math.round(ns)+' ns   /   SIMULATED';el('slider').value=Math.round(progress*1000);el('play').textContent=playing?'Pause':progress>=1?'Replay':'Play'}
+function frame(t){if(playing){progress=Math.min(1,progress+Math.min(t-last,50)/15000);if(progress===1)playing=false}last=t;draw();requestAnimationFrame(frame)}
+el('slider').oninput=e=>{playing=false;progress=e.target.value/1000};el('play').onclick=()=>{if(progress>=1)progress=0;playing=!playing};requestAnimationFrame(frame)
+</script></html>

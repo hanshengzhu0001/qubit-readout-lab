@@ -4,7 +4,7 @@
 
 **How early can a controller trust a qubit readout?**
 
-[**Launch the interactive exhibit ↗**](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+[**Tour the quantum computer →**](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html) · [Interactive exhibit ↗](https://hanshengzhu0001.github.io/qubit-readout-lab/)
 
 A controller needs to read a qubit before it can act on the result. Waiting for more samples costs time. Acting early can save time, but if the measurement electronics drift, the controller can become confident in the wrong answer.
 

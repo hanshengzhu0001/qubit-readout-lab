@@ -1,22 +1,16 @@
-# Signal / State · Qubit Readout Lab
+# Qubit Readout Lab
 
-**Can a quantum controller read a qubit and reset its partner before the deadline?**
+A Rust / NeXosim experiment in measurement-based feedback. A controller measures one qubit of a Bell pair and uses the result to reset its partner. When the microwave signal drifts, a missed **1** can make the controller skip a necessary flip.
 
-[![Animated workflow. Prepare and measure a Bell pair, read the shifted microwave signal, then compare the skipped flip under stale calibration with the successful reset after recalibration.](figures/workflow.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+[Interactive shot replay](https://hanshengzhu0001.github.io/qubit-readout-lab/) · [Circuit walkthrough](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html) · [Rust async implementation](#rust-async-two-runtimes-two-jobs)
 
-**Imagine a color sensor that used to recognize red, but its filter shifts and it starts calling red orange.** A qubit controller has a similar problem. It infers a bit from a microwave signal. If that signal rotates relative to the reference, a real **1 can look like a 0**. In this circuit, that mistake means the controller skips the flip it needed to reset the partner qubit. Waiting longer gives it more evidence, but the reset can then finish too late.
+![Decision evidence for a single matched shot, with the fitted reference reaching the positive threshold at sample 11 and the stale reference reaching the negative threshold at sample 20.](figures/decision-trace.svg)
 
-<a href="https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html"><img src="figures/readout-impact.gif" width="100%" alt="Animated comparison of three policies on the same shot, followed by on-time reset counts across 4,000 synthetic shots"></a>
+**One shot, two decisions.** Both traces use the same noisy voltages. With the fitted reference, evidence reaches +5 at sample 11 and the controller flips the partner to zero. With stale calibration, evidence reaches −5 at sample 20 and the partner stays at one.
 
-[**Tour the quantum computer →**](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html) · [Inspect the voltage traces](https://hanshengzhu0001.github.io/qubit-readout-lab/exhibit.html#experiment) · [Rust async](#rust-async-two-runtimes-two-jobs)
-
-**Why it matters.** The controller’s job is to finish the correct operation in time. With an illustrative **120 ns** budget and 35° of synthetic phase drift, a calibration fit from **16 labeled shots** recovered **861 correct, on-time resets** in a separate set of 4,000 shots. Holding out for all 48 samples produced just one assignment error after correction, but every shot finished at **220 ns**.
-
-The animation walks through preparation, measurement, readout, feedback, and verification. It then compares three readout policies on the same shot and shows the results across all matched shots. The voltages and timings are simulated.
+Across **4,000 matched synthetic shots** at 35° drift, fitting the reference with 16 labeled pilots increased correct resets within the modeled 120 ns deadline from **2,566 to 3,427**.
 
 ## What if calibration drifts again?
-
-[![Animated recovery experiment showing the phase shift, detection at the next check, and correct on-time reset counts](figures/drift-recovery.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/drift.html)
 
 In a paired synthetic replay, the signal shifted by **50° after 1,856 evaluation shots**. The next periodic check detected the change after **64 more shots**. Recalibration improved correct, on-time resets from **1,087 to 1,843 out of 2,144** post-shift shots. The policy checks every 128 evaluation shots, using 16 labeled shots per check and refitting when the estimated phase differs by at least 18°. It uses **512 labeled shots total**, including the initial 16. Pilot acquisition time is outside the 120 ns per-shot budget.
 

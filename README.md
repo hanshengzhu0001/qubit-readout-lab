@@ -1,8 +1,10 @@
 # Qubit Readout Lab
 
-**At 108 ns, the controller has met its deadline. The qubit it was supposed to reset is still in state 1.**
+**Should a quantum computer flip a bit or leave it alone?** To get a bit ready for its next job, the machine needs to leave it at 0. If it’s already 0, do nothing. If it’s 1, flip it. Either action can be a mistake.
 
-This Rust and NeXosim experiment replays the same simulated microwave measurement twice. With stale calibration, the controller reads a 0 and skips the flip. Refit the reference and it reads a 1, flips the partner qubit, and completes the reset at 72 ns.
+The tricky part is knowing which state it’s in. In this experiment, two quantum bits (qubits) are prepared so their measurements agree. The machine measures one to decide what to do to the other. Its sensor returns a noisy microwave signal. If that signal drifts, yesterday’s calibration can make a 1 look like a 0.
+
+**Watch one missed reset.** The old calibration tells the machine to leave the qubit alone. It finishes before the deadline, with the qubit still at 1. Replay the same signal with a freshly calibrated sensor and the machine recognizes the 1 and flips the qubit to 0.
 
 [Replay the shot](https://hanshengzhu0001.github.io/qubit-readout-lab/) · [Follow the circuit](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html) · [Read the Rust implementation](examples/readout.rs)
 

@@ -1,0 +1,56 @@
+:root {
+  --paper: #f7f8f5;
+  --ink: #182620;
+  --muted: #475850;
+  --rule: #ccd5ce;
+  --accent: #145747;
+}
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.65 system-ui, sans-serif;
+}
+body > header, body > main {
+  box-sizing: border-box;
+  width: min(100%, 1080px);
+  max-width: none;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 60px);
+}
+body > main { padding-bottom: 48px; }
+.lab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 14px;
+}
+.lab-nav a:first-child { margin-right: auto; font-weight: 700; }
+a, small { color: var(--accent); }
+a { text-underline-offset: 4px; }
+h1 {
+  max-width: 19ch;
+  margin: clamp(28px, 5vw, 64px) 0 16px;
+  font: 400 clamp(36px, 6vw, 68px)/1.06 Georgia, serif;
+  letter-spacing: -.045em;
+}
+h2 { font: 400 clamp(25px, 4vw, 34px)/1.15 Georgia, serif; }
+p { color: var(--muted); max-width: 66ch; }
+h1 + p { font-size: clamp(17px, 2vw, 20px); }
+figure, .lab-panel {
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  margin: 24px 0;
+}
+.lab-panel { background: #fff; }
+.lab-panel canvas { border-radius: 0; }
+.lab-panel aside, .lab-panel article, .lab-panel .tools { padding: 12px 18px; }
+.lab-panel .tools { border-top: 1px solid var(--rule); }
+.lab-panel button, .lab-panel select { font-size: 14px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid #21866e;
+  outline-offset: 3px;
+}

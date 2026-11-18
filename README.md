@@ -1,5 +1,7 @@
 # Signal / State · Qubit Readout Lab
 
+[![Read the invisible. Animated trajectories of the two prepared qubit states.](figures/signal-state.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+
 **How early can a controller trust a qubit readout?**
 
 [**Launch the interactive exhibit ↗**](https://hanshengzhu0001.github.io/qubit-readout-lab/)

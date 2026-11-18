@@ -1,9 +1,9 @@
 :root {
-  --paper: #f7f8f5;
-  --ink: #182620;
-  --muted: #475850;
-  --rule: #ccd5ce;
-  --accent: #145747;
+  --paper: #000;
+  --ink: #f5f7f6;
+  --muted: #b6c0bc;
+  --rule: #303936;
+  --accent: #91efdc;
 }
 body {
   background: var(--paper);
@@ -45,7 +45,7 @@ figure, .lab-panel {
   border-radius: 12px;
   margin: 24px 0;
 }
-.lab-panel { background: #fff; }
+.lab-panel { background: #000; }
 .lab-panel canvas { border-radius: 0; }
 .lab-panel aside, .lab-panel article, .lab-panel .tools { padding: 12px 18px; }
 .lab-panel .tools { border-top: 1px solid var(--rule); }
@@ -53,4 +53,30 @@ figure, .lab-panel {
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 3px solid #21866e;
   outline-offset: 3px;
+}
+
+:root { color-scheme: dark; }
+.lab-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .85fr);
+  align-items: start;
+  gap: 20px 48px;
+  margin: clamp(32px, 6vw, 72px) 0 32px;
+}
+.lab-intro h1, .lab-intro p:first-child { margin-top: 0; }
+.lab-intro p:last-child { margin-bottom: 0; }
+.lab-panel .tools { border-top: 0; border-bottom: 1px solid var(--rule); }
+.lab-panel canvas, .instrument, .visual, .stats > div, .replay-page article {
+  background: #000;
+}
+.lab-panel article { min-height: initial; color: var(--muted); }
+.lab-panel aside + article { padding-top: 0; }
+figure figcaption, #motionNote { padding: 12px 18px; margin: 0; }
+.instrument canvas, iframe { background: #000; }
+.replay-page h1 { max-width: 26ch; margin-top: 0; }
+.replay-page article { border: 1px solid var(--rule); }
+.replay-page section { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 680px) {
+  .lab-intro, .replay-page section { grid-template-columns: 1fr; }
+  .lab-intro { gap: 4px; }
 }

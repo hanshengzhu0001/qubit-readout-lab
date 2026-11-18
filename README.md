@@ -2,13 +2,13 @@
 
 **How early can a controller trust a qubit readout?**
 
-A superconducting readout produces two voltage channels, I and Q. As the resonator rings up, two candidate qubit states trace different paths in that plane. This experiment asks how much of a noisy path a classical controller needs to see before acting.
+A controller needs to read a qubit before it can act on the result. Waiting for more samples costs time. Acting early can save time, but if the measurement electronics drift, the controller can become confident in the wrong answer.
 
-![Animated comparison of accumulated evidence on the same synthetic shot with stale and corrected phase calibration](figures/readout-replay.gif)
+![Animated story showing how stale and corrected calibration produce different decisions from the same synthetic qubit shot](figures/readout-story.gif)
 
-[Interactive replay](figures/readout-player.html) · [Experiment data](figures/results.json) · [Rust implementation](examples/readout.rs)
+**What can 16 labeled calibration shots buy you?** In this synthetic experiment, fitting one phase offset cut early-readout errors from **339 to 16 out of 4,000**. The corrected rule still used just **18.64 of 48 samples** on average.
 
-With a 35° phase shift, the early decision rule made **339 errors in 4,000 synthetic shots**. Estimating one phase offset from **16 labeled calibration shots** brought that down to **16 errors**, with a mean decision time of **18.64 samples out of 48**.
+[Replay the experiment](#replay-the-experiment) · [How Rust async works here](#rust-async-two-runtimes-two-jobs) · [Reproduce the results](#reproduce-locally)
 
 ## A small inverse problem before each readout experiment
 
@@ -24,15 +24,19 @@ The fitted angle was 42.99°. Even with that residual error, correction recovere
 
 The forward model solves a driven, damped linear resonator with state-dependent detuning. A Gaussian likelihood compares each new pair of voltages with the two predicted positions and accumulates evidence. Each comparison uses identical shots and noise across stopping rules. The two classes have equal prior probability. The fixed-window baseline uses the same likelihood at sample 48.
 
-[Open the animated readout replay](figures/readout-player.html). On GitHub, download the HTML and open it locally. Choose a calibration mode, stopping rule, and shot. Play or scrub to see the measured I/Q path, cumulative log odds, state decision, and simulated feedback time.
+## Replay the experiment
+
+[Open the interactive player](figures/readout-player.html). On GitHub, download the HTML and open it locally. Choose a calibration mode, stopping rule, and shot. Play or scrub to see the measured I/Q path, cumulative log odds, state decision, and simulated feedback time.
 
 ## Accuracy versus readout length
 
 ![State-dependent resonator paths and assignment accuracy versus mean samples for nominal, stale, and corrected calibration](figures/readout.png)
 
-The chart changes the stopping threshold on the same shots. For each curve, the rightmost point uses all 48 samples.
+The chart changes the stopping threshold on the same shots. [Watch the evidence cross the decision threshold](figures/readout-replay.gif). For each curve, the rightmost point uses all 48 samples.
 
-## What Rust does
+## Rust async: two runtimes, two jobs
+
+**Tokio coordinates experiments. NeXosim schedules the events inside each experiment.**
 
 - **Ownership and borrowing.** An immutable `Arc<Input>` shares the fixture among runs. Each bench borrows its shots and owns its actor state. The sample event moves its payload into the next scheduled event.
 - **Tokio.** `JoinSet::spawn_blocking` runs independent synchronous benches while the async coordinator waits on an owned semaphore permit. At most two benches run concurrently.

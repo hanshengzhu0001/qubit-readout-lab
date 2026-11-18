@@ -194,7 +194,7 @@ fn evaluate(input: &Input, mode: &str, threshold: f64) -> Result<serde_json::Val
         errors += usize::from(decision.state != shot.state);
         samples += decision.samples;
         let state_index = usize::from(shot.state);
-        if preview_counts[state_index] < 6 {
+        if preview_counts[state_index] < 48 {
             preview_counts[state_index] += 1;
             previews.push(Preview {
                 samples: &shot.samples,

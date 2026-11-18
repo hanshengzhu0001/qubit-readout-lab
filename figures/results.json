@@ -1,0 +1,170 @@
+[
+  {
+    "rotation_deg": 0,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 2.0,
+    "mean_samples": 12.7155,
+    "accuracy": 0.92975
+  },
+  {
+    "rotation_deg": 0,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 3.0,
+    "mean_samples": 15.04225,
+    "accuracy": 0.97675
+  },
+  {
+    "rotation_deg": 0,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 4.0,
+    "mean_samples": 16.902,
+    "accuracy": 0.991
+  },
+  {
+    "rotation_deg": 0,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 5.0,
+    "mean_samples": 18.53575,
+    "accuracy": 0.9975
+  },
+  {
+    "rotation_deg": 0,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 7.0,
+    "mean_samples": 21.47325,
+    "accuracy": 0.99925
+  },
+  {
+    "rotation_deg": 0,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 10.0,
+    "mean_samples": 25.64175,
+    "accuracy": 0.99975
+  },
+  {
+    "rotation_deg": 0,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": null,
+    "mean_samples": 48.0,
+    "accuracy": 0.99975
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 2.0,
+    "mean_samples": 12.80525,
+    "accuracy": 0.77025
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 3.0,
+    "mean_samples": 15.87575,
+    "accuracy": 0.8285
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 4.0,
+    "mean_samples": 18.88825,
+    "accuracy": 0.8815
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 5.0,
+    "mean_samples": 21.7605,
+    "accuracy": 0.91525
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 7.0,
+    "mean_samples": 26.3155,
+    "accuracy": 0.94175
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": 10.0,
+    "mean_samples": 30.958,
+    "accuracy": 0.953
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": false,
+    "estimated_phase_deg": 0.0,
+    "threshold": null,
+    "mean_samples": 48.0,
+    "accuracy": 0.95325
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": true,
+    "estimated_phase_deg": 42.99316584067859,
+    "threshold": 2.0,
+    "mean_samples": 12.77225,
+    "accuracy": 0.92
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": true,
+    "estimated_phase_deg": 42.99316584067859,
+    "threshold": 3.0,
+    "mean_samples": 15.0305,
+    "accuracy": 0.96725
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": true,
+    "estimated_phase_deg": 42.99316584067859,
+    "threshold": 4.0,
+    "mean_samples": 16.92875,
+    "accuracy": 0.98825
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": true,
+    "estimated_phase_deg": 42.99316584067859,
+    "threshold": 5.0,
+    "mean_samples": 18.63825,
+    "accuracy": 0.996
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": true,
+    "estimated_phase_deg": 42.99316584067859,
+    "threshold": 7.0,
+    "mean_samples": 21.56375,
+    "accuracy": 0.99825
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": true,
+    "estimated_phase_deg": 42.99316584067859,
+    "threshold": 10.0,
+    "mean_samples": 25.823,
+    "accuracy": 0.99975
+  },
+  {
+    "rotation_deg": 35,
+    "corrected": true,
+    "estimated_phase_deg": 42.99316584067859,
+    "threshold": null,
+    "mean_samples": 48.0,
+    "accuracy": 0.99975
+  }
+]

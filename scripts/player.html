@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qubit readout replay</title>
+<style>
+body{margin:0;background:#101826;color:#eef4ff;font:17px system-ui}
+main{max-width:960px;margin:auto;padding:36px 22px}h1{font-size:clamp(30px,5vw,52px);margin:0}
+p,label{color:#bfcfe4}section{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+article{background:#182438;padding:18px;border-radius:14px}h2{font-size:19px;margin:0}
+svg{width:100%;display:block;overflow:visible}button,select{font:inherit;padding:7px 12px}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:24px 0}
+input{width:min(230px,100%)}output{display:block;margin:16px 0;font-variant-numeric:tabular-nums}
+@media(max-width:620px){section{grid-template-columns:1fr}}
+</style>
+<main>
+<h1>When is a qubit readout ready?</h1>
+<p>Replay synthetic voltage samples and follow the evidence that triggers feedback.</p>
+<div class="controls">
+<label>Condition <select id="mode"><option value="nominal">Nominal</option><option value="stale">Stale calibration</option><option value="corrected" selected>Pilot corrected</option></select></label>
+<label>Rule <select id="rule"><option value="early">Early decision</option><option value="full">Full window</option></select></label>
+<label>Shot <select id="shot"></select></label>
+<button id="play">Play</button>
+<label>Sample <input id="step" type="range" min="0" value="0"></label>
+</div>
+<section>
+<article><h2>Measured voltage path</h2><svg id="iq" viewBox="0 0 360 245" role="img" aria-label="In-phase versus quadrature voltage"></svg><p>Blue and orange are state 0 and 1 templates. White shows measured samples after any selected phase correction.</p></article>
+<article><h2>Accumulated log odds</h2><svg id="odds" viewBox="0 0 360 245" role="img" aria-label="Cumulative state evidence by sample"></svg><p>Positive evidence favors state 1. Dashed lines mark the early decision thresholds.</p></article>
+</section>
+<output id="status"></output>
+<p id="summary"></p>
+</main>
+<script>
+const data = __READOUT_DATA__;
+const byId = id => document.getElementById(id);
+const {mode, rule, shot, step, play, iq, odds, status, summary} =
+  Object.fromEntries(['mode','rule','shot','step','play','iq','odds','status','summary'].map(id=>[id,byId(id)]));
+const line = (points, stroke) => '<polyline fill="none" stroke="'+stroke+'" stroke-width="2.5" points="'+points.map(p=>p.join(',')).join(' ')+'"/>';
+const label = (x,y,value) => '<text x="'+x+'" y="'+y+'" fill="#bfcfe4" font-size="12">'+value+'</text>';
+let timer;
+function run(){return data.runs.find(r=>r.mode===mode.value && (r.threshold===null)===(rule.value==='full'));}
+run().previews.forEach((_,i)=>shot.add(new Option(i+1,i)));
+function stop(){clearInterval(timer);timer=null;play.textContent='Play';}
+function draw(){
+  const r=run(), p=r.previews[Number(shot.value)], n=Number(step.value);
+  const a=r.phase_deg*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+  const voltage=p.samples.map(([i,q])=>[c*i+s*q,c*q-s*i]);
+  const extent=Math.max(1,...voltage.flat().map(Math.abs))*1.08;
+  const xy=([i,q])=>[180+i*147/extent,114-q*96/extent];
+  iq.innerHTML=line([[26,114],[334,114]],'#435574')+line([[180,14],[180,215]],'#435574')+
+    line(data.templates[0].map(xy),'#66acff')+line(data.templates[1].map(xy),'#ffad65')+
+    line(voltage.slice(0,n).map(xy),'#fff')+label(321,134,'I')+label(192,24,'Q')+
+    (n?'<circle cx="'+xy(voltage[n-1])[0]+'" cy="'+xy(voltage[n-1])[1]+'" r="4" fill="white"/>':'');
+  const lim=Math.max(6,...p.evidence.map(Math.abs))*1.08;
+  const y=v=>115-v*90/lim, x=i=>35+i*295/48;
+  odds.innerHTML=line([[35,y(0)],[330,y(0)]],'#435574')+label(13,y(0)+4,'0')+
+    label(33,225,'0')+label(273,225,'48 samples')+
+    (r.threshold===null?'':[-5,5].map(v=>'<path d="M35 '+y(v)+' H330" fill="none" stroke="#ffad65" stroke-dasharray="5 5"/>'+label(10,y(v)+4,v)).join(''))+
+    line([[x(0),y(0)],...p.evidence.slice(0,n).map((v,i)=>[x(i+1),y(v)])],'#77e8c4');
+  status.textContent=n===p.evidence.length
+    ? 'Decision '+Number(p.decision)+' · true state '+Number(p.truth)+' · feedback at '+(4*n+16)+' ns (simulated)'
+    : 'Sample '+n+' of '+p.evidence.length+' · collecting evidence';
+  summary.textContent=r.shots.toLocaleString()+' shots · '+r.mean_samples.toFixed(2)+' mean samples · '+r.errors+' assignment errors';
+}
+function reset(){stop();step.max=run().previews[Number(shot.value)].evidence.length;step.value=0;draw();}
+[mode,rule,shot].forEach(el=>el.addEventListener('change',reset));
+step.addEventListener('input',()=>{stop();draw();});
+play.addEventListener('click',()=>{
+  if(timer){stop();return;}
+  if(Number(step.value)>=Number(step.max)) step.value=0;
+  play.textContent='Pause';
+  timer=setInterval(()=>{step.value=Number(step.value)+1;draw();if(Number(step.value)>=Number(step.max))stop();},120);
+});
+reset();
+</script>
+</html>

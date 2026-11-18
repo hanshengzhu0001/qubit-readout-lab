@@ -12,6 +12,14 @@ A noisy measurement can fool an early controller. Waiting for the full signal im
 
 The animation walks through preparation, measurement, readout, feedback, and verification. It then compares three readout policies on the same shot and shows the results across all matched shots. The voltages and timings are simulated.
 
+## What if calibration drifts again?
+
+[![Animated recovery experiment showing the phase shift, detection at the next check, and correct on-time reset counts](figures/drift-recovery.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/drift.html)
+
+In a paired synthetic replay, the signal shifted by **50° after 1,856 evaluation shots**. The next periodic check detected the change after **64 more shots**. Recalibration improved correct, on-time resets from **1,087 to 1,843 out of 2,144** post-shift shots. The policy checks every 128 evaluation shots, using 16 labeled shots per check and refitting when the estimated phase differs by at least 18°. It uses **512 labeled shots total**, including the initial 16. Pilot acquisition time is outside the 120 ns per-shot budget.
+
+The recovery experiment uses Python to replay the readout and feedback timing equations. The two-qubit circuit below and its event timing are modeled independently in Rust/NeXosim. [Explore the recovery timeline](https://hanshengzhu0001.github.io/qubit-readout-lab/drift.html) · [Experiment data](figures/drift-results.json)
+
 ## From a quantum circuit to a classical decision and back
 
 The simulator prepares a Bell pair from `|00⟩` with H and CNOT. Measuring the first qubit takes one of the two equally probable branches. The experiment explicitly supplies balanced branches so every calibration policy sees the same synthetic shots. A readout actor receives only the voltage-derived evidence. It sends its decision back to the circuit actor, which applies X to the second qubit if the controller reports 1, then checks its final state.
@@ -72,6 +80,8 @@ python3 -m pip install -r requirements.txt
 python3 scripts/readout.py
 python3 scripts/animate.py
 python3 scripts/impact.py
+python3 scripts/drift.py
+python3 scripts/drift_animation.py
 cargo test --locked
 ```
 

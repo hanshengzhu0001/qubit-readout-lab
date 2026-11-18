@@ -2,6 +2,8 @@
 
 **Can a quantum controller read a qubit and reset its partner before the deadline?**
 
+[![Animated workflow. Prepare and measure a Bell pair, read the shifted microwave signal, then compare the skipped flip under stale calibration with the successful reset after recalibration.](figures/workflow.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+
 **Imagine a color sensor that used to recognize red, but its filter shifts and it starts calling red orange.** A qubit controller has a similar problem. It infers a bit from a microwave signal. If that signal rotates relative to the reference, a real **1 can look like a 0**. In this circuit, that mistake means the controller skips the flip it needed to reset the partner qubit. Waiting longer gives it more evidence, but the reset can then finish too late.
 
 <a href="https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html"><img src="figures/readout-impact.gif" width="100%" alt="Animated comparison of three policies on the same shot, followed by on-time reset counts across 4,000 synthetic shots"></a>
@@ -87,6 +89,7 @@ python3 -m pip install -r requirements.txt
 python3 scripts/readout.py
 python3 scripts/animate.py
 python3 scripts/impact.py
+python3 scripts/workflow.py
 python3 scripts/drift.py
 python3 scripts/drift_animation.py
 cargo test --locked

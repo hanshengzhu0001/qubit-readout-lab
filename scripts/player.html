@@ -15,8 +15,8 @@ input{width:min(230px,100%)}output{display:block;margin:16px 0;font-variant-nume
  .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:20px 0}.stage{padding:10px 12px;border:1px solid #435574;border-radius:10px;color:#a3b5cf}.stage.active{border-color:#77e8c4;color:#fff;background:#203a43;box-shadow:0 0 16px #77e8c428}.stage strong{display:block;color:inherit}.stage small{display:block;margin-top:4px}
 </style>
 <main>
-<h1>From qubits to feedback</h1>
-<p>Replay synthetic voltage samples and follow the evidence that triggers feedback.</p>
+<h1>Decide now or wait for a clearer signal?</h1>
+<p>The machine needs to decide whether to flip a quantum bit back to zero. Each noisy reading offers a clue, but waiting costs time. Play one run, then switch from “Early decision” to “Full window” to see what waiting changes.</p>
 <div class="controls">
 <label>Condition <select id="mode"><option value="nominal">Nominal</option><option value="stale">Stale calibration</option><option value="corrected" selected>Pilot corrected</option></select></label>
 <label>Rule <select id="rule"><option value="early">Early decision</option><option value="full">Full window</option></select></label>

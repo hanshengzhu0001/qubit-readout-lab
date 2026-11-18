@@ -1,10 +1,12 @@
-# Qubit Readout Lab
+# Signal / State · Qubit Readout Lab
 
 **How early can a controller trust a qubit readout?**
 
+[**Launch the interactive exhibit ↗**](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+
 A controller needs to read a qubit before it can act on the result. Waiting for more samples costs time. Acting early can save time, but if the measurement electronics drift, the controller can become confident in the wrong answer.
 
-![Animated story showing how stale and corrected calibration produce different decisions from the same synthetic qubit shot](figures/readout-story.gif)
+[![Animated story showing how stale and corrected calibration produce different decisions from the same synthetic qubit shot](figures/readout-story.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/)
 
 **What can 16 labeled calibration shots buy you?** In this synthetic experiment, fitting one phase offset cut early-readout errors from **339 to 16 out of 4,000**. The corrected rule still used just **18.64 of 48 samples** on average.
 

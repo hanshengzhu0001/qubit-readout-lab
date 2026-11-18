@@ -42,8 +42,9 @@ def frame(step):
     card(682, 156, 278, "Choose a feedback action", "A reported 1 triggers a target flip", step >= 2, BLUE)
     arrow(325, 189, 352, BLUE)
     arrow(646, 189, 673, BLUE)
-    d.line([(820,221),(820,232),(190,232),(190,250)], fill="#49566c", width=2)
-    d.line([(190,315),(190,326),(22,326),(22,359),(40,359)], fill="#49566c", width=2)
+    d.line([(820,221),(820,232),(22,232),(22,369)], fill="#49566c", width=2)
+    arrow(22, 282, 38, AMBER if step >= 3 else "#49566c")
+    arrow(22, 369, 38, MINT if step >= 4 else "#49566c")
     for y, color, label, call, action, outcome, start in [
         (250, AMBER, "Stale calibration", "Calls 0", "Skips the flip", "Target stays |1⟩", 3),
         (337, MINT, "After recalibration", "Calls 1", "Applies the flip", "Target resets to |0⟩", 4),

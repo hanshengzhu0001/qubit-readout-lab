@@ -10,7 +10,7 @@ A noisy measurement can fool an early controller. Waiting for the full signal im
 
 **Why it matters.** The controller’s job is to finish the correct operation in time. With an illustrative **120 ns** budget and 35° of synthetic phase drift, a calibration fit from **16 labeled shots** recovered **861 correct, on-time resets** in a separate set of 4,000 shots. Holding out for all 48 samples produced just one assignment error after correction, but every shot finished at **220 ns**.
 
-The animation first shows a selected shot, then the aggregate over all matched shots. The voltages and timings are simulated.
+The animation walks through preparation, measurement, readout, feedback, and verification. It then compares three readout policies on the same shot and shows the results across all matched shots. The voltages and timings are simulated.
 
 ## From a quantum circuit to a classical decision and back
 

@@ -4,13 +4,14 @@
 </style><main>
 <nav><a href="machine.html">← Quantum computer tour</a><a href="https://github.com/hanshengzhu0001/qubit-readout-lab">Source ↗</a></nav>
 <h1>The signal <span class="mint">drifts again.</span></h1>
-<p>The first calibration is good until the electronics shift. Follow what happens while the controller waits for its next labeled check, and see how many correct resets it recovers once it fits a new phase.</p>
+<p>Think of a color sensor whose filter shifts after calibration. The object stays red, but the old reference may now call it orange. Here, the microwave signal rotates and a real 1 can look like a 0. That can make the controller skip the flip needed to reset the partner qubit.</p>
 <div class="visual"><img id="story" alt="Animated experiment showing the phase shift, the delayed check, and the recovery in on-time resets." hidden><p id="motionNote">Play the animation to see the experiment unfold.</p></div>
 <button id="play" type="button">Play animation</button>
 <h2>Scrub across the disturbance</h2>
 <label for="batch">Evaluation batch</label><input type="range" id="batch" min="0" value="0">
 <output id="state" for="batch"></output><div class="stats"><div>Frozen calibration<strong id="frozen">—</strong></div><div>Checks and recalibration<strong id="adaptive">—</strong></div></div>
 <p><small>Counts show correct resets by the illustrative 120 ns deadline. The 512 labeled pilot shots are separate from the 4,000 evaluation shots. Pilot acquisition time is outside the per-shot deadline.</small></p>
+<h2>Why study this?</h2><p>Experiments on superconducting hardware have measured the readout speed–accuracy tradeoff and used recalibration to counter control drift. This demo isolates those concerns with a synthetic phase shift and an illustrative deadline.</p><p><a href="https://arxiv.org/abs/2308.02079">Hardware study on readout optimization</a> · <a href="https://doi.org/10.1103/PhysRevApplied.22.044031">Hardware study using analog readout and recalibration</a></p>
 <script>
 const story=document.getElementById('story'), button=document.getElementById('play'), note=document.getElementById('motionNote');
 function setMotion(on){story.hidden=!on;note.hidden=on;if(on)story.src='drift-recovery.gif';else story.removeAttribute('src');button.textContent=on?'Stop animation':'Play animation';button.setAttribute('aria-pressed',String(on))}

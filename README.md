@@ -2,7 +2,7 @@
 
 **Can a quantum controller read a qubit and reset its partner before the deadline?**
 
-A noisy measurement can fool an early controller. Waiting for the full signal improves accuracy, but leaves less time to act. This lab follows that tradeoff through an entire two-qubit feedback circuit.
+**Imagine a color sensor that used to recognize red, but its filter shifts and it starts calling red orange.** A qubit controller has a similar problem. It infers a bit from a microwave signal. If that signal rotates relative to the reference, a real **1 can look like a 0**. In this circuit, that mistake means the controller skips the flip it needed to reset the partner qubit. Waiting longer gives it more evidence, but the reset can then finish too late.
 
 <a href="https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html"><img src="figures/readout-impact.gif" width="100%" alt="Animated comparison of three policies on the same shot, followed by on-time reset counts across 4,000 synthetic shots"></a>
 
@@ -19,6 +19,13 @@ The animation walks through preparation, measurement, readout, feedback, and ver
 In a paired synthetic replay, the signal shifted by **50° after 1,856 evaluation shots**. The next periodic check detected the change after **64 more shots**. Recalibration improved correct, on-time resets from **1,087 to 1,843 out of 2,144** post-shift shots. The policy checks every 128 evaluation shots, using 16 labeled shots per check and refitting when the estimated phase differs by at least 18°. It uses **512 labeled shots total**, including the initial 16. Pilot acquisition time is outside the 120 ns per-shot budget.
 
 The recovery experiment uses Python to replay the readout and feedback timing equations. The two-qubit circuit below and its event timing are modeled independently in Rust/NeXosim. [Explore the recovery timeline](https://hanshengzhu0001.github.io/qubit-readout-lab/drift.html) · [Experiment data](figures/drift-results.json)
+
+## Why this is a real control problem
+
+- **Readout takes time, and its accuracy depends on how it is configured.** Google Quantum AI experimentally optimized readout speed and error together for superconducting qubits. [Bengtsson et al., Model-based Optimization of Superconducting Qubit Readout](https://arxiv.org/abs/2308.02079)
+- **Calibration can go stale.** An experimental superconducting logical-qubit study used labeled I/Q calibration data to fit prepared-state distributions and automated recalibration to counter control-parameter drift. [Ali et al., Reducing the Error Rate of a Superconducting Logical Qubit Using Analog Readout Information](https://doi.org/10.1103/PhysRevApplied.22.044031)
+
+This lab isolates those concerns in an illustrative two-qubit feedback experiment. The abrupt 50° rotation, 120 ns deadline, pilot schedule, and recovery counts are simulation choices or outputs. They are not hardware measurements.
 
 ## From a quantum circuit to a classical decision and back
 

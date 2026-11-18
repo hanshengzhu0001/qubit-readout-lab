@@ -1,7 +1,8 @@
 """Render a black-background storyboard from the drift experiment results."""
 import json
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import ImageFont
+from storyboard import Storyboard
 
 root = Path(__file__).resolve().parents[1]
 data = json.loads((root / "figures/drift-results.json").read_text())
@@ -10,6 +11,7 @@ shift, detected = data["shift"], data["detected"]
 mint, amber, pale = "#7bf2d1", "#ffbf79", "#c4d0e3"
 
 def font(size, bold=False):
+    size *= Storyboard.scale
     for name in ("DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf",
                  "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if bold else
                  "/System/Library/Fonts/Supplemental/Arial.ttf"):
@@ -28,8 +30,8 @@ scenes = [
 ]
 
 def frame(chapter, limit):
-    im = Image.new("RGB", (1000, 448), "#000000")
-    d = ImageDraw.Draw(im)
+    d = Storyboard(1000, 448)
+    im = d.image
     def text(x,y,value,size,color=pale,bold=False):
         d.text((x,y),value,font=font(size,bold),fill=color)
     title, caption, _ = scenes[chapter]
@@ -67,7 +69,7 @@ def frame(chapter, limit):
             d.rounded_rectangle((345,y+7,345+415*n/data["post_shots"],y+19),6,fill=color)
             text(780,y-1,f"{n:,} / {data['post_shots']:,}",23,color,True)
         text(43,358,f'+{data["summary"]["adaptive"]-data["summary"]["frozen"]} correct, on-time resets after drift',27,mint,True)
-        text(44,402,"512 extra labeled shots for ongoing checks, including the initial 16.",17)
+        text(44,402,"512 labeled shots total for ongoing checks, including the initial 16.",17)
     return im
 
 frames, durations = [], []

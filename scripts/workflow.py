@@ -1,12 +1,14 @@
 """Render the readout workflow for the README and the exhibit."""
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import ImageFont
+from storyboard import Storyboard
 
 ROOT = Path(__file__).resolve().parents[1]
 WHITE, MUTED = "#f3f7ff", "#acbcd4"
 MINT, AMBER, BLUE = "#7bf2d1", "#ffbe87", "#9bbdff"
 
 def font(size, bold=False):
+    size *= Storyboard.scale
     for name in ("DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf",
                  "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if bold else
                  "/System/Library/Fonts/Supplemental/Arial.ttf"):
@@ -17,8 +19,8 @@ def font(size, bold=False):
     return ImageFont.load_default(size=size)
 
 def frame(step):
-    image = Image.new("RGB", (1000, 430), "#000000")
-    d = ImageDraw.Draw(image)
+    d = Storyboard(1000, 430)
+    image = d.image
 
     def text(x, y, value, size, color=WHITE, bold=False):
         d.text((x, y), value, fill=color, font=font(size, bold))

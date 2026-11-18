@@ -1,18 +1,16 @@
 # Signal / State · Qubit Readout Lab
 
-[![Read the invisible. Animated trajectories of the two prepared qubit states.](figures/signal-state.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+**Can a quantum controller read a qubit and reset its partner before the deadline?**
 
-**How early can a controller trust a qubit readout?**
+A noisy measurement can fool an early controller. Waiting for the full signal improves accuracy, but leaves less time to act. This lab follows that tradeoff through an entire two-qubit feedback circuit.
 
-[**Tour the quantum computer →**](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html) · [Interactive exhibit ↗](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+[![Animated experiment. One shot ends wrong, correct and on time, or correct but late depending on the readout policy. Across 4,000 shots, phase correction improves correct on-time resets from 2,566 to 3,427.](figures/readout-impact.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html)
 
-A controller needs to read a qubit before it can act on the result. Waiting for more samples costs time. Acting early can save time, but if the measurement electronics drift, the controller can become confident in the wrong answer.
+[**Tour the quantum computer →**](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html) · [Inspect the voltage traces](https://hanshengzhu0001.github.io/qubit-readout-lab/exhibit.html#experiment) · [Rust async](#rust-async-two-runtimes-two-jobs)
 
-[![Animated story showing how stale and corrected calibration produce different decisions from the same synthetic qubit shot](figures/readout-story.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/)
+**Why it matters.** The controller’s job is to finish the correct operation in time. With an illustrative **120 ns** budget and 35° of synthetic phase drift, a calibration fit from **16 labeled shots** recovered **861 correct, on-time resets** in a separate set of 4,000 shots. Holding out for all 48 samples produced just one assignment error after correction, but every shot finished at **220 ns**.
 
-**What can 16 labeled calibration shots buy you?** In this synthetic experiment, fitting one phase offset cut early-readout errors from **339 to 16 out of 4,000**. The corrected rule still used just **18.64 of 48 samples** on average.
-
-[Replay the experiment](#replay-the-experiment) · [How Rust async works here](#rust-async-two-runtimes-two-jobs) · [Reproduce the results](#reproduce-locally)
+The animation first shows a selected shot, then the aggregate over all matched shots. The voltages and timings are simulated.
 
 ## From a quantum circuit to a classical decision and back
 
@@ -73,6 +71,7 @@ From the project directory, use Rust 1.93 and a Python environment:
 python3 -m pip install -r requirements.txt
 python3 scripts/readout.py
 python3 scripts/animate.py
+python3 scripts/impact.py
 cargo test --locked
 ```
 

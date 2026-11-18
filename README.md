@@ -4,7 +4,7 @@
 
 A noisy measurement can fool an early controller. Waiting for the full signal improves accuracy, but leaves less time to act. This lab follows that tradeoff through an entire two-qubit feedback circuit.
 
-[![Animated experiment. One shot ends wrong, correct and on time, or correct but late depending on the readout policy. Across 4,000 shots, phase correction improves correct on-time resets from 2,566 to 3,427.](figures/readout-impact.gif)](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html)
+<a href="https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html"><img src="figures/readout-impact.gif" width="100%" alt="Animated comparison of three policies on the same shot, followed by on-time reset counts across 4,000 synthetic shots"></a>
 
 [**Tour the quantum computer →**](https://hanshengzhu0001.github.io/qubit-readout-lab/machine.html) · [Inspect the voltage traces](https://hanshengzhu0001.github.io/qubit-readout-lab/exhibit.html#experiment) · [Rust async](#rust-async-two-runtimes-two-jobs)
 
@@ -48,7 +48,7 @@ The forward model solves a driven, damped linear resonator with state-dependent 
 
 ## Accuracy versus readout length
 
-![State-dependent resonator paths and assignment accuracy versus mean samples for nominal, stale, and corrected calibration](figures/readout.png)
+<img src="figures/readout.png" width="100%" alt="Resonator paths and assignment accuracy versus mean samples under nominal, stale, and corrected calibration">
 
 The chart changes the stopping threshold on the same shots. [Watch the evidence cross the decision threshold](figures/readout-replay.gif). For each curve, the rightmost point uses all 48 samples.
 

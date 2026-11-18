@@ -47,7 +47,7 @@ def render(chapter, fraction):
         d.line((finish_x(deadline), 155, finish_x(deadline), 333), fill="#f2d482", width=2)
         text(finish_x(deadline)-57, 130, "120 ns deadline", 16, "#f2d482")
         for i, (label, color, shot) in enumerate(zip(labels, colors, shots)):
-            y = 183+i*61
+            y = 183 + i * 61
             final_ns = shot["finished_ns"]
             text(44, y-12, label, 23, color, True)
             d.rounded_rectangle((330,y,745,y+7), 4, fill="#263550")
@@ -64,14 +64,14 @@ def render(chapter, fraction):
         text(44, 38, "4,000 MATCHED SYNTHETIC SHOTS", 16, "#94baf9", True)
         text(44, 68, "Count the resets that arrive on time.", 41, bold=True)
         for i, (label, color, run) in enumerate(zip(labels, colors, cohorts)):
-            y = 166+i*60
+            y = 183 + i * 61
             count = run["timely_resets"]
-            text(44, y-12, label, 22, color, True)
-            d.rounded_rectangle((330,y,745,y+12), 6, fill="#263550")
+            text(44, y-12, label, 23, color, True)
+            d.rounded_rectangle((330,y,745,y+7), 4, fill="#263550")
             if count:
-                d.rounded_rectangle((330,y,330+415*count/run["shots"]*fraction,y+12), 6, fill=color)
-            text(762,y-10,f"{round(count*fraction):,} / {run['shots']:,}",22,color,True)
-        text(44, 360, "A phase fit from 16 labeled shots recovered 861 correct, on-time resets.", 21, muted)
+                d.rounded_rectangle((330,y,330+415*count/run["shots"]*fraction,y+7), 4, fill=color)
+            text(762,y-16,f"{round(count*fraction):,} / {run['shots']:,}",19,color,True)
+        text(44, 360, "A phase fit from 16 labeled shots recovered 861 correct, on-time resets.", 19, muted)
     return img
 
 frames = [render(0, i/25) for i in range(26)] + [render(1, i/16) for i in range(17)]
